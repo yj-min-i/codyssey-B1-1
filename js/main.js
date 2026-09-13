@@ -43,3 +43,16 @@ themeToggle.addEventListener('click', () => {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark'; // 상태 변경
   renderTheme(currentTheme); // 렌더링
 });
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('fade-in');
+      observer.unobserve(entry.target); // 한 번 나타난 뒤엔 그만 감시 (성능)
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('main section').forEach((section) => {
+  observer.observe(section);
+});
