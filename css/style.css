@@ -34,6 +34,7 @@ nav {
 
 /* 기본 = 모바일 */
 .nav-menu { display: none; }
+
 .nav-menu {
   list-style: none;
   gap: 20px;
@@ -44,6 +45,18 @@ nav {
 .nav-menu a {
   text-decoration: none;
 }
+
+.nav-menu.active {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: var(--color-bg);
+  padding: 20px;
+}
+
 .hamburger { display: block; }
 
 @media (min-width: 768px) {
