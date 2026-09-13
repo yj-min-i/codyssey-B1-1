@@ -73,6 +73,7 @@ codyssey-B1-1/
 - **네비게이션 스타일 변경**: 스크롤이 60px 이상 내려가면 네비게이션 배경색이 변경됨
 - **다크모드 토글**: 클릭 시 테마 전환, `localStorage`에 저장되어 새로고침해도 유지됨
 - **스크롤 애니메이션**: Intersection Observer(threshold 0.2)를 이용해 섹션이 화면에 들어올 때 페이드인 효과 적용
+- **Hero CTA 버튼**: "View Projects", "Contact" 링크를 버튼 형태로 스타일링해 시각적으로 다음 행동을 유도
 
 ### 5.3 GitHub API 연동
 - GitHub REST API(`https://api.github.com/users/yj-min-i/repos`)에서 저장소 목록을 가져와 Projects 섹션에 카드 형태로 렌더링합니다.
@@ -197,6 +198,7 @@ const STATE = {
 ### 13.3 접근성(Accessibility) 관련
 - 햄버거 버튼에 `aria-label="메뉴 열기"`를 기본 적용했고, 메뉴 열림/닫힘 상태를 `aria-expanded` 속성으로 함께 갱신하도록 했습니다.
 - 폼 에러 메시지 영역(`name-error`, `email-error`, `message-error`)에는 `aria-live="polite"`를 적용해, 스크린리더 사용자에게도 에러 발생 시 실시간으로 안내되도록 했습니다.
+- About 섹션의 프로필 이미지에는 `alt="윤정민 GitHub 프로필 이미지"`를 명시했습니다.
 
 ### 13.4 타이포그래피
 `:root`에 색상·간격 변수는 정의했지만 글꼴 관련 변수(`--font-base`, `--font-size-*` 등)는 별도로 분리하지 않았습니다. 프로젝트 규모가 작아 지금은 브라우저 기본 글꼴을 그대로 사용했고, 추후 커스텀 폰트를 적용할 경우 CSS 변수로 분리할 계획입니다.
