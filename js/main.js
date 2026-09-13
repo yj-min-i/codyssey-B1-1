@@ -141,6 +141,7 @@ async function loadProjects() {
     }
     renderProjects(repos);
   } catch (error) {
+    console.error('GitHub API 호출 실패:', error);
     renderError();
   }
 }
