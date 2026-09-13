@@ -17,3 +17,9 @@ body {
   color: var(--color-text);
   transition: background 0.3s, color 0.3s;
 }
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
