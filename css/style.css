@@ -29,3 +29,16 @@ nav {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
 }
+
+/* 기본 = 모바일 */
+.nav-menu { display: none; }
+.hamburger { display: block; }
+
+@media (min-width: 768px) {
+  .nav-menu { display: flex; }
+  .hamburger { display: none; }
+}
+
+@media (min-width: 1024px) {
+  /* 데스크톱 전용 조정 */
+}
