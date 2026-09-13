@@ -34,6 +34,16 @@ nav {
 
 /* 기본 = 모바일 */
 .nav-menu { display: none; }
+.nav-menu {
+  list-style: none;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu a {
+  text-decoration: none;
+}
 .hamburger { display: block; }
 
 @media (min-width: 768px) {
