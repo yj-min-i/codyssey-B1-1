@@ -2,7 +2,8 @@ const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
 hamburger.addEventListener('click', () => {
-  navMenu.classList.toggle('active');
+  const isOpen = navMenu.classList.toggle('active');
+  hamburger.setAttribute('aria-expanded', isOpen);
 });
 
 document.querySelectorAll('.nav-menu a').forEach((link) => {
@@ -132,7 +133,7 @@ async function loadProjects() {
   try {
     const response = await fetch(REPOS_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const repos = await response.json();
+    const repos = (await response.json()).filter((repo) => !repo.fork);
 
     if (repos.length === 0) {
       renderEmpty();
