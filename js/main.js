@@ -97,3 +97,51 @@ form.addEventListener('submit', (e) => {
     successMsg.textContent = '';
   }
 });
+
+const GITHUB_USERNAME = 'yj-min-i';
+const REPOS_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
+const projectsGrid = document.querySelector('.projects-grid');
+
+function renderLoading() {
+  projectsGrid.innerHTML = '<p class="state-msg">로딩 중...</p>';
+}
+function renderError() {
+  projectsGrid.innerHTML = `
+    <p class="state-msg">프로젝트를 불러올 수 없습니다.</p>
+    <button class="retry-btn">다시 시도</button>
+  `;
+  document.querySelector('.retry-btn').addEventListener('click', loadProjects);
+}
+function renderEmpty() {
+  projectsGrid.innerHTML = '<p class="state-msg">표시할 프로젝트가 없습니다.</p>';
+}
+function renderProjects(repos) {
+  projectsGrid.innerHTML = repos
+    .map((repo) => `
+      <article class="project-card">
+        <h3>${repo.name}</h3>
+        <p>${repo.description ?? '설명이 없습니다.'}</p>
+        <span>⭐ ${repo.stargazers_count}</span>
+      </article>
+    `)
+    .join('');
+}
+
+async function loadProjects() {
+  renderLoading();
+  try {
+    const response = await fetch(REPOS_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const repos = await response.json();
+
+    if (repos.length === 0) {
+      renderEmpty();
+      return;
+    }
+    renderProjects(repos);
+  } catch (error) {
+    renderError();
+  }
+}
+
+loadProjects();
