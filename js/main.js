@@ -26,3 +26,20 @@ window.addEventListener('scroll', () => {
 scrollTopBtn.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+const themeToggle = document.querySelector('.theme-toggle');
+const root = document.documentElement;
+
+let currentTheme = localStorage.getItem('theme') || 'light';
+
+function renderTheme(theme) {
+  root.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+}
+
+renderTheme(currentTheme);
+
+themeToggle.addEventListener('click', () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark'; // 상태 변경
+  renderTheme(currentTheme); // 렌더링
+});
