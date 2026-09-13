@@ -145,3 +145,7 @@ async function loadProjects() {
 }
 
 loadProjects();
+
+const repos = (await response.json())
+  .filter((repo) => !repo.fork && !repo.private)
+  .slice(0, 6);
