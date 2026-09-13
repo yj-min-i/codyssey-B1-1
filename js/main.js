@@ -56,3 +56,44 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('main section').forEach((section) => {
   observer.observe(section);
 });
+
+const form = document.querySelector('.contact-form');
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function setError(field, message) {
+  document.getElementById(`${field}-error`).textContent = message;
+}
+function clearErrors() {
+  ['name', 'email', 'message'].forEach((f) => setError(f, ''));
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault(); // 기본 제출(새로고침) 방지
+  clearErrors();
+
+  const name = form.name.value.trim();
+  const email = form.email.value.trim();
+  const message = form.message.value.trim();
+  let isValid = true;
+
+  if (!name) { setError('name', '이름을 입력해주세요.'); isValid = false; }
+
+  // 이메일: "필수값 검증"과 "형식 검증"을 분리 — 순서 중요.
+  if (!email) {
+    setError('email', '이메일을 입력해주세요.');
+    isValid = false;
+  } else if (!emailRegex.test(email)) {
+    setError('email', '올바른 이메일 형식이 아닙니다.');
+    isValid = false;
+  }
+
+  if (!message) { setError('message', '메시지를 입력해주세요.'); isValid = false; }
+
+  const successMsg = document.getElementById('success-msg');
+  if (isValid) {
+    successMsg.textContent = '문의가 성공적으로 접수되었습니다!';
+    form.reset();
+  } else {
+    successMsg.textContent = '';
+  }
+});
