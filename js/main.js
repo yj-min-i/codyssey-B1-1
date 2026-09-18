@@ -1,17 +1,34 @@
+// ===== 중앙 상태 객체 =====
+const STATE = {
+  theme: localStorage.getItem('theme') || 'light',
+  menuOpen: false,
+  repos: [],
+  apiStatus: 'idle', // idle | loading | success | error | empty
+  formErrors: { name: '', email: '', message: '' },
+};
+
+// ===== 모바일 메뉴 토글 =====
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
+function renderMenu() {
+  navMenu.classList.toggle('active', STATE.menuOpen);
+  hamburger.setAttribute('aria-expanded', STATE.menuOpen);
+}
+
 hamburger.addEventListener('click', () => {
-  const isOpen = navMenu.classList.toggle('active');
-  hamburger.setAttribute('aria-expanded', isOpen);
+  STATE.menuOpen = !STATE.menuOpen; // 상태 변경
+  renderMenu(); // 렌더링
 });
 
 document.querySelectorAll('.nav-menu a').forEach((link) => {
   link.addEventListener('click', () => {
-    navMenu.classList.remove('active');
+    STATE.menuOpen = false; // 상태 변경
+    renderMenu(); // 렌더링
   });
 });
 
+// ===== 스크롤 탑 버튼 & 네비게이션 스타일 변경 =====
 const scrollTopBtn = document.querySelector('.scroll-top-btn');
 const nav = document.querySelector('nav');
 
@@ -28,23 +45,23 @@ scrollTopBtn.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
+// ===== 다크모드 =====
 const themeToggle = document.querySelector('.theme-toggle');
 const root = document.documentElement;
 
-let currentTheme = localStorage.getItem('theme') || 'light';
-
-function renderTheme(theme) {
-  root.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
+function renderTheme() {
+  root.setAttribute('data-theme', STATE.theme);
+  localStorage.setItem('theme', STATE.theme);
 }
 
-renderTheme(currentTheme);
+renderTheme();
 
 themeToggle.addEventListener('click', () => {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark'; // 상태 변경
-  renderTheme(currentTheme); // 렌더링
+  STATE.theme = STATE.theme === 'dark' ? 'light' : 'dark'; // 상태 변경
+  renderTheme(); // 렌더링
 });
 
+// ===== 스크롤 애니메이션 (Intersection Observer) =====
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
@@ -58,11 +75,16 @@ document.querySelectorAll('main section').forEach((section) => {
   observer.observe(section);
 });
 
+// ===== 폼 유효성 검사 =====
 const form = document.querySelector('.contact-form');
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function renderFieldError(field) {
+  document.getElementById(`${field}-error`).textContent = STATE.formErrors[field];
+}
 function setError(field, message) {
-  document.getElementById(`${field}-error`).textContent = message;
+  STATE.formErrors[field] = message; // 상태 변경
+  renderFieldError(field); // 렌더링
 }
 function clearErrors() {
   ['name', 'email', 'message'].forEach((f) => setError(f, ''));
@@ -106,25 +128,33 @@ form.addEventListener('submit', (e) => {
   }
 });
 
+// ===== GitHub API 연동 =====
 const GITHUB_USERNAME = 'yj-min-i';
 const REPOS_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
 const projectsGrid = document.querySelector('.projects-grid');
 
-function renderLoading() {
-  projectsGrid.innerHTML = '<p class="state-msg">로딩 중...</p>';
-}
-function renderError() {
-  projectsGrid.innerHTML = `
-    <p class="state-msg">프로젝트를 불러올 수 없습니다.</p>
-    <button class="retry-btn">다시 시도</button>
-  `;
-  document.querySelector('.retry-btn').addEventListener('click', loadProjects);
-}
-function renderEmpty() {
-  projectsGrid.innerHTML = '<p class="state-msg">표시할 프로젝트가 없습니다.</p>';
-}
-function renderProjects(repos) {
-  projectsGrid.innerHTML = repos
+function renderProjects() {
+  if (STATE.apiStatus === 'idle') return;
+
+  if (STATE.apiStatus === 'loading') {
+    projectsGrid.innerHTML = '<p class="state-msg">로딩 중...</p>';
+    return;
+  }
+  if (STATE.apiStatus === 'error') {
+    projectsGrid.innerHTML = `
+      <p class="state-msg">프로젝트를 불러올 수 없습니다.</p>
+      <button class="retry-btn">다시 시도</button>
+    `;
+    document.querySelector('.retry-btn').addEventListener('click', loadProjects);
+    return;
+  }
+  if (STATE.apiStatus === 'empty') {
+    projectsGrid.innerHTML = '<p class="state-msg">표시할 프로젝트가 없습니다.</p>';
+    return;
+  }
+
+  // success
+  projectsGrid.innerHTML = STATE.repos
     .map((repo) => {
       // 구조분해 할당으로 repo 객체에서 필요한 값만 추출 (stargazers_count → stars로 이름 변경)
       const { name, description, stargazers_count: stars } = repo;
@@ -140,21 +170,22 @@ function renderProjects(repos) {
 }
 
 async function loadProjects() {
-  renderLoading();
+  STATE.apiStatus = 'loading'; // 상태 변경
+  renderProjects(); // 렌더링
+
   try {
     const response = await fetch(REPOS_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const repos = (await response.json()).filter((repo) => !repo.fork);
 
-    if (repos.length === 0) {
-      renderEmpty();
-      return;
-    }
-    renderProjects(repos);
+    STATE.repos = repos; // 상태 변경
+    STATE.apiStatus = repos.length === 0 ? 'empty' : 'success'; // 상태 변경
   } catch (error) {
     console.error('GitHub API 호출 실패:', error);
-    renderError();
+    STATE.apiStatus = 'error'; // 상태 변경
   }
+
+  renderProjects(); // 렌더링
 }
 
 loadProjects();
