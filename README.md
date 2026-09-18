@@ -74,6 +74,7 @@ codyssey-B1-1/
 - **다크모드 토글**: 클릭 시 테마 전환, `localStorage`에 저장되어 새로고침해도 유지됨
 - **스크롤 애니메이션**: Intersection Observer(threshold 0.2)를 이용해 섹션이 화면에 들어올 때 페이드인 효과 적용
 - **Hero CTA 버튼**: "View Projects", "Contact" 링크를 버튼 형태로 스타일링해 시각적으로 다음 행동을 유도
+- **입력 필드 실시간 안내**: 에러가 표시된 필드에 다시 타이핑을 시작하면(`input` 이벤트) 해당 에러 메시지가 즉시 사라짐
 
 ### 5.3 GitHub API 연동
 - GitHub REST API(`https://api.github.com/users/yj-min-i/repos`)에서 저장소 목록을 가져와 Projects 섹션에 카드 형태로 렌더링합니다.

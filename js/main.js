@@ -16,7 +16,7 @@ const scrollTopBtn = document.querySelector('.scroll-top-btn');
 const nav = document.querySelector('nav');
 
 const SCROLL_TOP_THRESHOLD = 300;
-const NAV_STYLE_THRESHOLD = 60;   
+const NAV_STYLE_THRESHOLD = 60;
 
 window.addEventListener('scroll', () => {
   const y = window.scrollY;
@@ -68,6 +68,13 @@ function clearErrors() {
   ['name', 'email', 'message'].forEach((f) => setError(f, ''));
 }
 
+// input 이벤트: 다시 타이핑을 시작하면 해당 필드의 에러 메시지를 바로 지움
+['name', 'email', 'message'].forEach((field) => {
+  form[field].addEventListener('input', () => {
+    setError(field, '');
+  });
+});
+
 form.addEventListener('submit', (e) => {
   e.preventDefault(); // 기본 제출(새로고침) 방지
   clearErrors();
@@ -118,13 +125,17 @@ function renderEmpty() {
 }
 function renderProjects(repos) {
   projectsGrid.innerHTML = repos
-    .map((repo) => `
-      <article class="project-card">
-        <h3>${repo.name}</h3>
-        <p>${repo.description ?? '설명이 없습니다.'}</p>
-        <span>⭐ ${repo.stargazers_count}</span>
-      </article>
-    `)
+    .map((repo) => {
+      // 구조분해 할당으로 repo 객체에서 필요한 값만 추출 (stargazers_count → stars로 이름 변경)
+      const { name, description, stargazers_count: stars } = repo;
+      return `
+        <article class="project-card">
+          <h3>${name}</h3>
+          <p>${description ?? '설명이 없습니다.'}</p>
+          <span>⭐ ${stars}</span>
+        </article>
+      `;
+    })
     .join('');
 }
 
