@@ -25,6 +25,12 @@ nav {
   justify-content: space-between;
   align-items: center;
   position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+nav.scrolled {
+  background: var(--color-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .projects-grid {
@@ -67,7 +73,14 @@ nav {
 }
 
 @media (min-width: 1024px) {
-  /* 데스크톱 전용 조정 */
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
 }
 
 .project-card {
@@ -108,4 +121,28 @@ main section.fade-in {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 16px;
+}
+
+.scroll-top-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
