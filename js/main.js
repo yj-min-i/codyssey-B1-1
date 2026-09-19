@@ -1,9 +1,26 @@
+// ===== 개발용 상태 로그 =====
+// 상태 변화 흐름을 콘솔에서 추적하고 싶을 때 DEBUG를 true로 바꾸면 된다.
+const DEBUG = false;
+function logState(label) {
+  if (DEBUG) console.log(`[STATE] ${label} →`, JSON.parse(JSON.stringify(STATE)));
+}
+
+// ===== 다크모드 초기값 결정 =====
+// localStorage에 저장된 값이 있으면 그걸 우선 쓰고,
+// 없으면(첫 방문) 사용자의 OS 다크모드 설정(prefers-color-scheme)을 따른다.
+function getInitialTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved) return saved;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 // ===== 중앙 상태 객체 =====
 const STATE = {
-  theme: localStorage.getItem('theme') || 'light',
+  theme: getInitialTheme(),
   menuOpen: false,
   repos: [],
   apiStatus: 'idle', // idle | loading | success | error | empty
+  apiErrorMessage: '',
   formErrors: { name: '', email: '', message: '' },
 };
 
@@ -13,7 +30,9 @@ const navMenu = document.querySelector('.nav-menu');
 
 function renderMenu() {
   navMenu.classList.toggle('active', STATE.menuOpen);
+  hamburger.classList.toggle('is-open', STATE.menuOpen);
   hamburger.setAttribute('aria-expanded', STATE.menuOpen);
+  logState('renderMenu');
 }
 
 hamburger.addEventListener('click', () => {
@@ -52,6 +71,7 @@ const root = document.documentElement;
 function renderTheme() {
   root.setAttribute('data-theme', STATE.theme);
   localStorage.setItem('theme', STATE.theme);
+  logState('renderTheme');
 }
 
 renderTheme();
@@ -85,6 +105,8 @@ function renderFieldError(field) {
 function setError(field, message) {
   STATE.formErrors[field] = message; // 상태 변경
   renderFieldError(field); // 렌더링
+  form[field].setAttribute('aria-invalid', message ? 'true' : 'false');
+  logState('setError');
 }
 function clearErrors() {
   ['name', 'email', 'message'].forEach((f) => setError(f, ''));
@@ -125,6 +147,10 @@ form.addEventListener('submit', (e) => {
     form.reset();
   } else {
     successMsg.textContent = '';
+    // 접근성: 첫 번째 에러 필드로 포커스를 옮겨서 스크린리더·키보드 사용자가
+    // 어디부터 고쳐야 하는지 바로 알 수 있게 한다.
+    const firstInvalidField = ['name', 'email', 'message'].find((f) => STATE.formErrors[f]);
+    if (firstInvalidField) form[firstInvalidField].focus();
   }
 });
 
@@ -133,7 +159,16 @@ const GITHUB_USERNAME = 'yj-min-i';
 const REPOS_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
 const projectsGrid = document.querySelector('.projects-grid');
 
+// XSS 방지: GitHub API가 돌려주는 문자열(저장소 이름/설명)을 innerHTML에 그대로 꽂지 않고,
+// <, >, & 같은 HTML 특수문자를 이스케이프해서 안전한 텍스트로 바꾼 뒤에 넣는다.
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
 function renderProjects() {
+  logState('renderProjects');
   if (STATE.apiStatus === 'idle') return;
 
   if (STATE.apiStatus === 'loading') {
@@ -142,7 +177,7 @@ function renderProjects() {
   }
   if (STATE.apiStatus === 'error') {
     projectsGrid.innerHTML = `
-      <p class="state-msg">프로젝트를 불러올 수 없습니다.</p>
+      <p class="state-msg">${escapeHTML(STATE.apiErrorMessage)}</p>
       <button class="retry-btn">다시 시도</button>
     `;
     document.querySelector('.retry-btn').addEventListener('click', loadProjects);
@@ -160,8 +195,8 @@ function renderProjects() {
       const { name, description, stargazers_count: stars } = repo;
       return `
         <article class="project-card">
-          <h3>${name}</h3>
-          <p>${description ?? '설명이 없습니다.'}</p>
+          <h3>${escapeHTML(name)}</h3>
+          <p>${escapeHTML(description ?? '설명이 없습니다.')}</p>
           <span>⭐ ${stars}</span>
         </article>
       `;
@@ -171,11 +206,19 @@ function renderProjects() {
 
 async function loadProjects() {
   STATE.apiStatus = 'loading'; // 상태 변경
+  STATE.apiErrorMessage = '';
   renderProjects(); // 렌더링
 
   try {
     const response = await fetch(REPOS_URL);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      // 상태 코드별로 사용자에게 보여줄 메시지를 구분한다.
+      // (콘솔에는 항상 상세 에러를 남기고, 화면에는 상황에 맞는 안내만 보여준다는 원칙)
+      STATE.apiErrorMessage = response.status === 403
+        ? 'GitHub API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.'
+        : '프로젝트를 불러올 수 없습니다.';
+      throw new Error(`HTTP ${response.status}`);
+    }
     const repos = (await response.json()).filter((repo) => !repo.fork);
 
     STATE.repos = repos; // 상태 변경
@@ -183,6 +226,7 @@ async function loadProjects() {
   } catch (error) {
     console.error('GitHub API 호출 실패:', error);
     STATE.apiStatus = 'error'; // 상태 변경
+    if (!STATE.apiErrorMessage) STATE.apiErrorMessage = '프로젝트를 불러올 수 없습니다.';
   }
 
   renderProjects(); // 렌더링

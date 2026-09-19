@@ -24,6 +24,7 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
+/* 로고 - 메뉴 - 버튼(햄버거/다크모드)을 한 줄에서 양 끝/사이로 정렬해야 해서 Flexbox 사용 */
 nav {
   display: flex;
   justify-content: space-between;
@@ -37,6 +38,8 @@ nav.scrolled {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 카드 개수가 API 응답에 따라 가변적이라 자동으로 줄바꿈되는 Grid의 auto-fit/minmax를 사용
+   (Flexbox의 flex-wrap으로도 줄바꿈은 되지만, 최소·최대 너비를 동시에 제어하려면 Grid가 더 직관적) */
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -57,6 +60,11 @@ nav.scrolled {
   text-decoration: none;
 }
 
+@keyframes menuSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .nav-menu.active {
   display: flex;
   flex-direction: column;
@@ -67,15 +75,36 @@ nav.scrolled {
   background: var(--color-bg);
   padding: 20px;
   z-index: 10;
+  animation: menuSlideDown 0.25s ease;
 }
 
-.hamburger { display: block; }
+/* 햄버거 · 다크모드 버튼: 모바일에서 손가락으로 누르기 충분한 최소 터치 영역(44x44) 확보 */
+.hamburger,
+.theme-toggle {
+  display: block;
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* 햄버거 버튼 열림/닫힘 피드백: 클릭하면 아이콘이 살짝 회전하며 상태 변화를 시각적으로 알려줌 */
+.hamburger {
+  transition: transform 0.2s ease;
+}
+.hamburger.is-open {
+  transform: rotate(90deg);
+}
 
 @media (min-width: 768px) {
   .nav-menu { display: flex; }
   .hamburger { display: none; }
 }
 
+/* 데스크톱 전용 레이아웃 조정: 본문이 화면 끝까지 늘어나면 읽기 불편해서 최대 너비를 제한하고,
+   화면이 넓어진 만큼 Projects 카드의 최소 너비도 살짝 키운다 */
 @media (min-width: 1024px) {
   main {
     max-width: 1080px;
@@ -107,7 +136,9 @@ main section.fade-in {
 }
 
 .cta-buttons a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 10px 24px;
   background: var(--color-primary);
   color: white;
@@ -117,6 +148,23 @@ main section.fade-in {
   transition: opacity 0.2s ease;
 }
 .cta-buttons a:hover {
+  opacity: 0.85;
+}
+
+/* 폼 제출 버튼 & 재시도 버튼: 최소 44px 터치 영역 확보 + 기본 브라우저 버튼 대신 일관된 스타일 적용 */
+.contact-form button,
+.retry-btn {
+  min-height: 44px;
+  padding: 10px 20px;
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.contact-form button:hover,
+.retry-btn:hover {
   opacity: 0.85;
 }
 
